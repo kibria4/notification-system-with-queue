@@ -16,4 +16,3 @@ A simple Node.JS notification system that uses Socket.IO for real-time notificat
 - Visit `http://localhost:3000` to view the notification output
 
 - Visit `http://localhost:3000/add` to add a notification
-=======
