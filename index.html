@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <title>Notification System</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <style>
+      html, body {
+        font-size: 14px;
+      }
+      section {
+        margin-top: 5em;
+      }
+      #show_notifications {
+        background: #e3e3e3;
+        padding: 2%;
+      }
+    </style>
+    <script>
+    var notificationqueue = [];
+    function checkActiveNotification(){
+      if($('div#notification').length >0){
+        return true;
+      }
+      return false;
+    }
+
+    function displayNotification($ntf, $duration) {
+        var notification = $ntf[0];
+        $(notification).prependTo('#show_notifications').hide().fadeIn(1000, function(){
+            if($(this).find('audio').length){
+                $(this).find('audio').volume = 1.0;
+            }
+        });
+
+        setTimeout(function () {
+            $('div#notification').fadeOut(1000, function(){
+                $(this).remove();
+                if(typeof notificationqueue != "undefined" && notificationqueue != null && notificationqueue.length > 0){
+                  var msg = notificationqueue.splice(0,1);
+                  displayNotification($(msg[0]),parseInt($(msg[0]).find('span.duration').attr('data-duration')));
+                }
+            });
+        }, parseInt($duration));
+    }
+    $(document).ready(function(){
+
+          var socket = io.connect('http://spoonyfoundry.com:3000');
+
+          socket.on('refresh feed',function(text,img,sound,duration){
+            var $notification = '<div id="notification"><span class="duration" data-duration="'+duration+'"></span>';
+
+            if(typeof img !== "undefined" && /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(img)){
+              $notification += '<span class="image"><img class="img-responsive" src="'+img+'" alt="" /></span>';
+            }
+            if(typeof sound !== "undefined" && /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(sound)){
+              $notification += '<span class="audio" style="visibility: hidden"></span>';
+            }
+
+            $notification += '<p>'+text+'</p></div>';
+
+            notificationqueue.push($notification);
+
+            if(checkActiveNotification()){
+              return;
+            }
+            displayNotification(notificationqueue.splice(0,1),duration);
+          });
+    });
+    </script>
+  </head>
+  <body>
+    <section class="edit-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12">
+            <div id="show_notifications">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </body>
+</html>

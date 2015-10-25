@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <title>Notification System</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <style>
+      html, body {
+        font-size: 14px;
+      }
+      section {
+        margin-top: 5em;
+      }
+
+    </style>
+    <script>
+    $(document).ready(function(){
+          var socket = io.connect('http://spoonyfoundry.com:3000');
+          $("#add_notification").click(function(){
+            if($('#notification_text').val() == ''){
+                alert('Please add text.');
+                return false;
+            }
+            if($('#notification_duration').val() == ''){
+                alert('Please add duration in milliseconds (1000 = 1 second).');
+                return false;
+            }
+            socket.emit('notification added',$("#notification_text").val(),$("#notification_image").val(),$("#notification_sound").val(),$("#notification_duration").val()||"1000");
+          });
+          socket.on('notification pushed',function(message){
+            var notification = '<div id="response"><p>'+message+'</p></div>';
+            $(notification).prependTo('#message').hide().fadeIn(1000);
+
+            setTimeout(function () {
+                $('div#message #response').fadeOut(1000, function(){
+                    $(this).remove();
+                });
+            }, 5000);
+          });
+    });
+    </script>
+  </head>
+  <body>
+    <section class="edit-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="row">
+              <div class="col-xs-12 text-container">
+                <textarea id="notification_text" rows="5" cols="70" class="form-control" placeholder="Message" required="required"></textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-xs-4 input-text-container">
+                <input type="text" class="form-control" name="notification_image" id="notification_image" placeholder="Image URL">
+              </div>
+              <div class="col-xs-4 input-text-container">
+                <input type="text" class="form-control" name="notification_sound" id="notification_sound" placeholder="Sound URL">
+              </div>
+              <div class="col-xs-4 input-text-container">
+                <input type="text" class="form-control" name="notification_duration" id="notification_duration" placeholder="Duration in milliseconds" required="required">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-xs-12 submit-container">
+                <input type="button" id="add_notification" class="btn btn-block btn-success" value="Add Notification">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row">
+          <div class="col-xs-12 message-container">
+            <div id="message"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </body>
+</html>
